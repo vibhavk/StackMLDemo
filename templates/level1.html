@@ -1,0 +1,116 @@
+<html>
+<head>
+    <title>Level 1</title>
+    <script src="https://stackml.com/library-js/stackml.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+</head>
+
+<body>
+<div class="container">
+
+        <section class="hero is-primary">
+                <div class="hero-body">
+                  <div class="container">
+                    <h1 class="title">
+                        Level 1
+                    </h1>
+                  </div>
+                </div>
+              </section>
+<div class="box">
+        <div class="row">
+                <div class="col-md-6">
+                        <img id="inputImage" style="display: block; margin: 0 auto; width: auto; height: 500px;" />
+                        <br>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="imageInput" name="pic" onchange="takePic();" />
+                                  </div>
+                            
+                            <script type="text/javascript">
+                                function takePic() {
+                                    var picReader = new FileReader();
+                                    picReader.readAsDataURL(document.getElementById("imageInput").files[0]);
+                                    picReader.onload = function (oFREvent) {
+                                        document.getElementById("inputImage").src = oFREvent.target.result;
+                                    };
+                                };
+                            </script>
+                        </div>
+                        <div class="col-md-4">
+                            <button type="button" class="button is-danger is-large" onclick="callStackML()">Magic!</button>    
+                        </div>
+                    </div>        
+                </div>
+                        <div class="col-md-6">
+                            <div class="box">
+                                    <canvas style="display: block; margin: 0 auto; width: auto; height: 500px;" id="outputCanvas"></canvas>
+                            </div>
+                        </div>
+            </div>
+</div> 
+
+
+<script>
+    function imageLoader(results) {
+       var img = new Image();
+       img.src = document.getElementById("inputImage").src;
+       img.onload = function () {
+           fill_canvas(img);
+       }
+
+        function fill_canvas(img) {
+            var canvas = document.getElementById('outputCanvas');
+            var context = canvas.getContext('2d');
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            context.drawImage(img, 0, 0);
+
+            for(i in results['outputs']) {
+                console.log(results['outputs'][i]);
+                var score  = results['outputs'][i]['score'];
+                var height = results['outputs'][i]['box']['height'];
+                var width  = results['outputs'][i]['box']['width'];
+                var x      = results['outputs'][i]['box']['x'];
+                var y      = results['outputs'][i]['box']['y'];
+                context.font = height + "px serif";
+                context.textBaseline = "hanging";
+                context.textAlign = "left";
+                context.fillText("🍔", x, y, width);
+            }   
+        }
+    }
+
+    async function callStackML() {
+        //provide the access key
+        await stackml.init({'accessKeyId': '804bafb54212ce4b7981036279d550a2'});
+        console.log("initialization complete!");
+        
+        // load face detection model
+        const model = await stackml.faceDetection(callbackLoad);
+
+        // make prediction with the image
+        model.detect(document.getElementById('inputImage'), callbackPredict);
+
+        function callbackLoad() {
+            console.log('callback after face detection model is loaded!');
+        }
+        
+        // callback after prediction
+        function callbackPredict(err, results) {
+            console.log(results);
+            imageLoader(results);
+            console.log("completed");
+        }
+    }
+</script>
+</div>
+</body>
+</html>
